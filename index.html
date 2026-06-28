@@ -62,43 +62,67 @@
     var text = document.getElementById('custom-loader-text');
     var progress = 0;
     var timeout;
+    var hasPausedAt70 = false;
+    var pageLoaded = false;
+
+    // Monitora quando o site real terminou de carregar no fundo
+    window.addEventListener('load', function() {
+      pageLoaded = true;
+    });
     
     function updateProgress() {
       var increment = 0;
       if (progress < 40) {
         increment = Math.floor(Math.random() * 8) + 4; // Rápido no começo
-      } else if (progress < 75) {
+      } else if (progress < 70) {
         increment = Math.floor(Math.random() * 5) + 2; // Médio
       } else if (progress < 99) {
-        increment = Math.floor(Math.random() * 2) + 1; // Muito devagar no final
+        increment = Math.floor(Math.random() * 2) + 1; // Devagar no final
       }
       
       progress += increment;
-      if (progress >= 99) progress = 99;
+      
+      // Trava exatamente no 70% para esperar os 6 segundos
+      if (progress >= 70 && !hasPausedAt70) {
+        progress = 70;
+        hasPausedAt70 = true;
+        text.innerText = progress + '%';
+        
+        // Pausa de 6000ms (6 segundos)
+        timeout = setTimeout(updateProgress, 6000);
+        return;
+      }
+
+      // Se passou da pausa, e chegou no 99%, espera o site carregar de verdade
+      if (progress >= 99) {
+        if (!pageLoaded) {
+          progress = 99; // Segura no 99%
+          text.innerText = progress + '%';
+          timeout = setTimeout(updateProgress, 100);
+          return;
+        } else {
+          progress = 100; // Libera os 100%
+        }
+      }
+
       text.innerText = progress + '%';
       
-      if (progress < 99) {
-        var delay = progress < 75 ? (Math.random() * 40 + 20) : (Math.random() * 150 + 50); 
+      // Continua subindo normalmente até 100%
+      if (progress < 100) {
+        var delay = progress < 70 ? (Math.random() * 40 + 20) : (Math.random() * 150 + 50); 
         timeout = setTimeout(updateProgress, delay);
+      } else {
+        // Finaliza e esconde a tela
+        setTimeout(function() {
+          loader.style.opacity = '0';
+          setTimeout(function() {
+            loader.style.display = 'none';
+          }, 800); // 800ms é a transição de opacity do CSS
+        }, 50); 
       }
     }
     
     timeout = setTimeout(updateProgress, 20);
-
-    // Quando a janela carrega totalmente (recursos reais do site)
-    window.addEventListener('load', function() {
-      clearTimeout(timeout);
-      progress = 100;
-      text.innerText = '100%';
-      
-      // Inicia a saída imediatamente para não ficar travado no 100%
-      setTimeout(function() {
-        loader.style.opacity = '0';
-        setTimeout(function() {
-          loader.style.display = 'none';
-        }, 800); // 800ms é o tempo da transição no CSS
-      }, 50); 
-    });
   })();
 </script>
 <!-- /CUSTOM LOADER -->
