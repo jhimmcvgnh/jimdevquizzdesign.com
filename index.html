@@ -61,24 +61,43 @@
     var loader = document.getElementById('custom-loader');
     var text = document.getElementById('custom-loader-text');
     var progress = 0;
+    var timeout;
     
-    // Simula um carregamento gradual até 99%
-    var interval = setInterval(function() {
-      progress += Math.floor(Math.random() * 8) + 2;
+    function updateProgress() {
+      var increment = 0;
+      if (progress < 40) {
+        increment = Math.floor(Math.random() * 8) + 4; // Rápido no começo
+      } else if (progress < 75) {
+        increment = Math.floor(Math.random() * 5) + 2; // Médio
+      } else if (progress < 99) {
+        increment = Math.floor(Math.random() * 2) + 1; // Muito devagar no final
+      }
+      
+      progress += increment;
       if (progress >= 99) progress = 99;
       text.innerText = progress + '%';
-    }, 40);
+      
+      if (progress < 99) {
+        var delay = progress < 75 ? (Math.random() * 40 + 20) : (Math.random() * 150 + 50); 
+        timeout = setTimeout(updateProgress, delay);
+      }
+    }
+    
+    timeout = setTimeout(updateProgress, 20);
 
-    // Quando a janela carrega totalmente
+    // Quando a janela carrega totalmente (recursos reais do site)
     window.addEventListener('load', function() {
-      clearInterval(interval);
+      clearTimeout(timeout);
+      progress = 100;
       text.innerText = '100%';
+      
+      // Inicia a saída imediatamente para não ficar travado no 100%
       setTimeout(function() {
         loader.style.opacity = '0';
         setTimeout(function() {
           loader.style.display = 'none';
-        }, 800);
-      }, 300);
+        }, 800); // 800ms é o tempo da transição no CSS
+      }, 50); 
     });
   })();
 </script>
