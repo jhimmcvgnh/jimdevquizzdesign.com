@@ -2000,7 +2000,6 @@ function initQuizInteraction(scope = document) {
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       if (advancing) return;
-      if (!tab.classList.contains('is-answered')) return;
 
       const targetIdx = questions.findIndex(q => q.dataset.question === tab.dataset.quizTab);
       const current   = questions.find(q => q.classList.contains('is-active'));
